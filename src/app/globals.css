@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+@plugin "tailwind-scrollbar-hide";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -42,6 +44,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-brand: var(--brand);
+  --color-highlight: var(--highlight);
 }
 
 :root {
@@ -77,6 +81,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.623 0.214 259.815);
 }
 
 .dark {
@@ -111,6 +117,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --highlight: oklch(0.852 0.199 91.936);
+  --brand: oklch(0.707 0.165 254.624);
 }
 
 @layer base {
@@ -120,4 +128,65 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Tiptap Editor Custom Styles */
+.tiptap {
+  /* Reduce paragraph margins */
+}
+
+.tiptap p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap p:first-child {
+  margin-top: 0;
+}
+
+.tiptap p:last-child {
+  margin-bottom: 0;
+}
+
+/* Reduce heading margins */
+.tiptap h1,
+.tiptap h2,
+.tiptap h3 {
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap h1:first-child,
+.tiptap h2:first-child,
+.tiptap h3:first-child {
+  margin-top: 0;
+}
+
+/* List spacing */
+.tiptap ul,
+.tiptap ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tiptap li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.tiptap li p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Blockquote */
+.tiptap blockquote {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Code block */
+.tiptap pre {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }

@@ -10,6 +10,8 @@ export interface Note {
   user_id: string;
   title: string | null;
   content: string | null;
+  icon?: string | null;
+  cover_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +22,8 @@ export interface Note {
 export interface NoteInsert {
   title?: string | null;
   content?: string | null;
+  icon?: string | null;
+  cover_url?: string | null;
 }
 
 /**
@@ -28,6 +32,8 @@ export interface NoteInsert {
 export interface NoteUpdate {
   title?: string | null;
   content?: string | null;
+  icon?: string | null;
+  cover_url?: string | null;
 }
 
 /**
@@ -61,12 +67,7 @@ export interface Tag {
   created_at: string;
 }
 
-export interface Note {
-  id: string;
-  user_id: string;
-  title: string | null;
-  content: string | null;
-  created_at: string;
-  updated_at: string;
+// Note with tags (used when fetching notes with their tags)
+export interface NoteWithTags extends Note {
   tags?: Tag[];
 }

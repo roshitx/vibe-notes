@@ -3,10 +3,17 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image";
+import Link from "@tiptap/extension-link";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { SlashCommand } from "./extensions/slash-command";
 import { useEffect } from "react";
 import { EditorToolbar } from "./editor-toolbar";
+import { EditorBubbleMenu } from "./editor-bubble-menu";
 import { Note } from "@/lib/types";
 import { updateNote } from "@/lib/actions/notes";
+import { uploadImage } from "@/lib/actions/upload";
 
 interface EditorProps {
   note: Note;
@@ -23,15 +30,49 @@ export function Editor({ note, onChange, onSaveStatusChange }: EditorProps) {
         },
       }),
       Placeholder.configure({
-        placeholder: "Start writing your thoughts...",
+        placeholder: "Start writing your thoughts... (Type '/' for commands)",
         emptyEditorClass: "is-editor-empty before:text-muted-foreground/50 before:content-[attr(data-placeholder)] before:float-left before:pointer-events-none before:h-0",
       }),
+      Image,
+      SlashCommand,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+      }),
+      TextStyle,
+      Color,
     ],
     content: note.content || "", // Initialize with note content
     editorProps: {
       attributes: {
         class: "prose prose-sm sm:prose-base dark:prose-invert focus:outline-none max-w-none min-h-[500px] p-4",
       },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+          const file = event.dataTransfer.files[0];
+          if (file.type.startsWith("image/")) {
+            event.preventDefault(); // Prevent default behavior
+            
+            // Upload logic duplication? Ideally refactor to hook but inline is fine for now
+            const upload = async () => {
+                const formData = new FormData();
+                formData.append("file", file);
+                const result = await uploadImage(formData);
+                
+                if (result.success && result.data) {
+                    const { schema } = view.state;
+                    const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                    if (coordinates) {
+                        view.dispatch(view.state.tr.insert(coordinates.pos, schema.nodes.image.create({ src: result.data.url })));
+                    }
+                }
+            };
+            upload();
+            return true;
+          }
+        }
+        return false;
+      }
     },
     onUpdate: ({ editor }) => {
       onChange?.();
@@ -75,7 +116,8 @@ export function Editor({ note, onChange, onSaveStatusChange }: EditorProps) {
   return (
     <div className="flex flex-col gap-4">
       <EditorToolbar editor={editor} />
-      <div className="rounded-md border bg-background shadow-sm">
+      <div className="rounded-md border bg-background shadow-sm relative">
+        <EditorBubbleMenu editor={editor} />
         <EditorContent editor={editor} />
       </div>
     </div>

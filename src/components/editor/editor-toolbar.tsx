@@ -11,15 +11,46 @@ import {
   List,
   ListOrdered,
   Quote,
+  ImageIcon,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
+import { useRef } from "react";
+import { uploadImage } from "@/lib/actions/upload";
 
 interface EditorToolbarProps {
   editor: Editor | null;
 }
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!editor) return;
+
+    // Optimistic UI? Or just wait. Let's wait for simplicity first.
+    // Or we could insert a placeholder.
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const result = await uploadImage(formData);
+
+    if (result.success && result.data) {
+        editor.chain().focus().setImage({ src: result.data.url }).run();
+    } else {
+        alert("Failed to upload image: " + result.error);
+    }
+    
+    // Reset input
+    if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+    }
+  };
+
   if (!editor) {
     return null;
   }
@@ -110,6 +141,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       >
         <Quote className="h-4 w-4" />
       </Toggle>
+
+      <Separator orientation="vertical" className="mx-1 h-6" />
+
+      <Toggle
+        size="sm"
+        pressed={false} // Image button is an action, not a toggle state usually
+        onPressedChange={() => fileInputRef.current?.click()}
+        aria-label="Insert image"
+      >
+        <ImageIcon className="h-4 w-4" />
+      </Toggle>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleImageUpload}
+      />
     </div>
   );
 }

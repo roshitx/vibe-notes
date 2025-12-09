@@ -187,13 +187,26 @@ export async function updateNote(
     };
   }
 
+  // Build update object with only provided fields
+  const updateData: Record<string, unknown> = {};
+  
+  if (data.title !== undefined) {
+    updateData.title = data.title;
+  }
+  if (data.content !== undefined) {
+    updateData.content = data.content;
+  }
+  if (data.icon !== undefined) {
+    updateData.icon = data.icon;
+  }
+  if (data.cover_url !== undefined) {
+    updateData.cover_url = data.cover_url;
+  }
+
   // Update note - RLS ensures user can only update their own notes
   const { data: note, error } = await supabase
     .from("notes")
-    .update({
-      title: data.title,
-      content: data.content,
-    })
+    .update(updateData)
     .eq("id", id)
     .select()
     .single();
