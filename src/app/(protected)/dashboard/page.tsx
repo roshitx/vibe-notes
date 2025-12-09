@@ -6,13 +6,11 @@ import { Plus } from "lucide-react";
 import { getNotes, createNote } from "@/lib/actions/notes";
 import { Note } from "@/lib/types";
 import { NoteList } from "@/components/notes/note-list";
-import { LogoutButton } from "@/components/auth/logout-button";
+import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
-/**
- * Dashboard page displaying all notes for the authenticated user
- * Requirements: 6.1, 6.2, 6.3
- */
 export default function DashboardPage() {
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
@@ -44,40 +42,49 @@ export default function DashboardPage() {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <h1 className="text-xl font-semibold">Vibe Notes</h1>
-          <LogoutButton />
-        </div>
-      </header>
+    <div className="flex h-screen min-h-screen flex-col bg-background">
+      
+      <DashboardHeader />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">My Notes</h2>
-          <Button onClick={handleCreateNote} disabled={isPending}>
-            <Plus className="mr-2 h-4 w-4" />
-            {isPending ? "Creating..." : "New Note"}
-          </Button>
-        </div>
-
-        {error && (
-          <div className="mb-6 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
+      <ScrollArea className="flex-1">
+        <main className="container mx-auto max-w-7xl px-4 py-8 md:px-6 lg:py-12">
+          
+          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">My Information</h2>
+              <p className="text-muted-foreground">
+                Manage your notes and thoughts in one place.
+              </p>
+            </div>
+            
+            <Button 
+                onClick={handleCreateNote} 
+                disabled={isPending}
+                size="default"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {isPending ? "Creating..." : "New Note"}
+            </Button>
           </div>
-        )}
 
-        <NoteList notes={notes} />
-      </main>
+          {error && (
+            <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm font-medium text-red-600 dark:text-red-400">
+             {error}
+            </div>
+          )}
+
+          {isLoading ? (
+             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-48 w-full rounded-xl bg-muted/50" />
+                ))}
+            </div>
+          ) : (
+             <NoteList notes={notes} />
+          )}
+        </main>
+      </ScrollArea>
     </div>
   );
 }

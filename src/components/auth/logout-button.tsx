@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface LogoutButtonProps {
   variant?:
@@ -16,6 +17,7 @@ interface LogoutButtonProps {
   size?: "default" | "sm" | "lg" | "icon";
   showIcon?: boolean;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function LogoutButton({
@@ -23,6 +25,7 @@ export function LogoutButton({
   size = "default",
   showIcon = true,
   className,
+  children,
 }: LogoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +33,6 @@ export function LogoutButton({
     setIsLoading(true);
     try {
       await signOut();
-      // On success, the server action redirects to login
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
@@ -44,10 +46,10 @@ export function LogoutButton({
       size={size}
       onClick={handleLogout}
       disabled={isLoading}
-      className={className}
+      className={cn(className)}
     >
-      {showIcon && <LogOut className="h-4 w-4" />}
-      {size !== "icon" && (isLoading ? "Signing out..." : "Sign Out")}
+      {showIcon && <LogOut className="mr-2 h-4 w-4" />}
+      {children ? children : (isLoading ? "Signing out..." : "Sign Out")}
     </Button>
   );
 }
