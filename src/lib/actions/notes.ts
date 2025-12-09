@@ -75,6 +75,38 @@ export async function getNotes(): Promise<ActionResult<Note[]>> {
 }
 
 /**
+ * Fetches notes filtered by tag ID for the authenticated user
+ */
+export async function getNotesByTag(tagId: string): Promise<ActionResult<Note[]>> {
+  const supabase = await createClient();
+
+  // Get authenticated user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: "You must be logged in to view notes" };
+  }
+
+  // Fetch notes associated with tag
+  const { data: notes, error } = await supabase
+    .from("notes")
+    .select("*, note_tags!inner(tag_id)")
+    .eq("user_id", user.id)
+    .eq("note_tags.tag_id", tagId)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("Get filtered notes error:", error);
+    return { success: false, error: "Failed to fetch filtered notes" };
+  }
+
+  return { success: true, data: notes };
+}
+
+/**
  * Fetches a single note by ID for the authenticated user
  * RLS ensures user ownership
  * Requirements: 7.1, 7.2, 7.3
@@ -92,10 +124,15 @@ export async function getNote(id: string): Promise<ActionResult<Note>> {
     return { success: false, error: "You must be logged in to view this note" };
   }
 
-  // Fetch note by ID - RLS ensures user can only access their own notes
+  // Fetch note by ID with tags
   const { data: note, error } = await supabase
     .from("notes")
-    .select("*")
+    .select(`
+      *,
+      tags:note_tags(
+        tag:tags(*)
+      )
+    `)
     .eq("id", id)
     .single();
 
@@ -105,6 +142,22 @@ export async function getNote(id: string): Promise<ActionResult<Note>> {
     }
     console.error("Get note error:", error);
     return { success: false, error: "Failed to fetch note" };
+  }
+
+  if (note) {
+    // Create a new object to avoid mutating the original data
+    const transformedNote: any = { ...note };
+
+    // Transform tags if they exist and structure matches expected format
+    if (transformedNote.tags && Array.isArray(transformedNote.tags)) {
+      transformedNote.tags = transformedNote.tags
+        .map((item: any) => item.tag)
+        .filter((tag: any) => tag !== null);
+    } else {
+      transformedNote.tags = [];
+    }
+
+    return { success: true, data: transformedNote as Note };
   }
 
   return { success: true, data: note };
